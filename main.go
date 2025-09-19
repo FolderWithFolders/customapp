@@ -11,7 +11,6 @@ import (
 
 var rtp float64
 var maxMultiplier = 10000.0
-var rng *rand.Rand
 
 func main() {
 	flag.Float64Var(&rtp, "rtp", 1.0, "RTP value in (0, 1.0]")
@@ -21,7 +20,7 @@ func main() {
 		log.Fatal("rtp must be in (0, 1.0]")
 	}
 
-	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+	rand.Seed(time.Now().UnixNano())
 
 	http.HandleFunc("/get", getHandler)
 
@@ -42,9 +41,19 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func generateMultiplier(rtp float64) float64 {
-	if rng.Float64() < rtp {
-		return 1.0 + rng.Float64()*(maxMultiplier-1.0)
-	} else {
-		return rng.Float64() * 1.0
+	if rand.Float64() < 1-rtp {
+		return 1.0
 	}
+
+	// Генерация unbounded Pareto с capping
+	v := rand.Float64()
+	denom := 1.0 - v
+	if denom <= 0 || denom < 1.0/maxMultiplier { // Избежать inf и cap
+		return maxMultiplier
+	}
+	m := 1.0 / denom
+	if m > maxMultiplier {
+		return maxMultiplier
+	}
+	return m
 }
