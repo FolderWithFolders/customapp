@@ -45,10 +45,10 @@ func generateMultiplier(rtp float64) float64 {
 		return 1.0
 	}
 
-	// Генерация unbounded Pareto с capping
+	// Генерация случайного числа больше 1.0
 	v := rand.Float64()
 	denom := 1.0 - v
-	if denom <= 0 || denom < 1.0/maxMultiplier { // Избежать inf и cap
+	if denom <= 0 || denom < 1.0/maxMultiplier { // Избежать деления на ноль и слишком больших чисел
 		return maxMultiplier
 	}
 	m := 1.0 / denom
